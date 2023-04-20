@@ -73,11 +73,11 @@ opcion1_Agregar tareas = do
   putStrLn "1. Pendiente"
   putStrLn "2. En proceso"
   putStrLn "3. Terminada"
-  putStr "Opción: "
-  estado <- getLine
+  estado <- getEstado
+  putStrLn estado
 
-  putStr "Fecha de vencimiento (aaaa/mm/dd)"
-  fecha <- getLine
+  -- putStr "Fecha de vencimiento (aaaa/mm/dd)"
+  -- fecha <- getLine
   -- putStr "  Día: "
   -- dd <- getLine
   -- putStr "  Mes: "
@@ -86,8 +86,23 @@ opcion1_Agregar tareas = do
   -- aaaa <- getLine
   -- read es para convertir de Str a Int
   -- let f = Fecha {dia = read dd, mes = read mm, año = read aaaa}
-  let t = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
-  putStr "** AGREGAR TAREA **"
+  -- let t = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
+  -- putStr "** AGREGAR TAREA **"
+
+getEstado :: IO String
+getEstado = do
+  putStr "Opción: "
+  estado <- getLine
+  
+  case estado of
+    "1" -> pure "Pendiente"
+    "2" -> pure "En proceso"
+    "3" -> pure "Terminado"
+    op -> regresarGetEstado
+
+regresarGetEstado = do
+  putStrLn "Opción inválida!"
+  getEstado
 
 opcion3_submenuMostrar tareas = do
   let header = "Descripción;Estado;FechaVencimiento\n"
