@@ -1,6 +1,6 @@
 import System.Exit (exitSuccess)
 import System.IO
-import Data.Text (Text, pack, splitOn, unpack)
+import Data.Text (Text, pack, splitOn, unpack, append)
 import System.Posix.Internals (puts)
 
 -- data Fecha = Fecha {dia :: Int, mes :: Int, año :: Int}
@@ -64,7 +64,7 @@ menu tareas = do
 
 opcion1_Agregar :: [Tarea] -> IO ()
 opcion1_Agregar tareas = do
-  putStr "** AGREGAR TAREA **"
+  putStrLn "** AGREGAR TAREA **"
   putStr "Descripción: "
   descripcion <- getLine
 
@@ -74,20 +74,12 @@ opcion1_Agregar tareas = do
   putStrLn "2. En proceso"
   putStrLn "3. Terminada"
   estado <- getEstado
-  putStrLn estado
 
-  -- putStr "Fecha de vencimiento (aaaa/mm/dd)"
-  -- fecha <- getLine
-  -- putStr "  Día: "
-  -- dd <- getLine
-  -- putStr "  Mes: "
-  -- mm <- getLine
-  -- putStr "  Año: "
-  -- aaaa <- getLine
-  -- read es para convertir de Str a Int
-  -- let f = Fecha {dia = read dd, mes = read mm, año = read aaaa}
-  -- let t = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
-  -- putStr "** AGREGAR TAREA **"
+  putStr "Fecha de vencimiento (aaaa/mm/dd): "
+  fecha <- getLine
+  let tarea = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
+  putStr ("Se registró exitosamente la tarea con descripción <" ++ descripcion ++ ">")
+  menu (tarea : tareas)
 
 getEstado :: IO String
 getEstado = do
