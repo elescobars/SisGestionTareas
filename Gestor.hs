@@ -2,6 +2,7 @@ import System.Exit (exitSuccess)
 import System.IO
 import Data.Text (Text, pack, splitOn, unpack)
 import System.Posix.Internals (puts)
+import Data.Text.Internal.Fusion.Common (lengthI)
 
 -- data Fecha = Fecha {dia :: Int, mes :: Int, año :: Int}
 
@@ -95,6 +96,7 @@ inputEstado = do
     "3" -> pure "Terminada"
     op -> regresarInputEstado
 
+regresarInputEstado :: IO String
 regresarInputEstado = do
   putStrLn "ERROR: ¡Opción inválida!"
   inputEstado
@@ -152,8 +154,22 @@ opcion4_Eliminar tareas = do
   putStrLn "** ELIMINAR TAREA             **"
   putStrLn "--------------------------------"
   putStrLn "** Lista de tareas existentes **"
-  putStrLn (take (length (mostrarTareas tareas 1) - 2) (mostrarTareas tareas 1))
+  putStrLn (take (length (mostrarTareas tareas 1) - 1) (mostrarTareas tareas 1))
   putStrLn "--------------------------------"
+  input <- inputIndex (length tareas)
+  let index = read input - 1 :: Int
+  let nuevasTareas = take index tareas ++ drop (index + 1) tareas
+  putStrLn "--------------------------------"
+  putStrLn ("Se eliminó la tarea " ++ input ++ " con descripción: " ++ descripcion (tareas !! index))
+  menu nuevasTareas
+
+inputIndex :: Int -> IO String
+inputIndex totalTareas = do
   putStr "Introduzca el número de la tarea: "
-  index <- getLine
-  putStrLn ("Se elimino la tarea " ++ index)
+  input <- getLine
+  if read input > 0 && read input <= totalTareas then pure input else regresarInputIndex totalTareas
+
+regresarInputIndex :: Int -> IO String
+regresarInputIndex totalTareas = do
+  putStrLn "ERROR: ¡No existe tarea asociada a este número!"
+  inputIndex totalTareas
