@@ -60,6 +60,7 @@ menu tareas = do
     "2" -> putStrLn "2 SELECCIONADO"
     "3" -> opcion3_submenuMostrar tareas
     "4" -> opcion4_Eliminar tareas
+    "5" -> opcion5_Guardar tareas
     "0" -> exitSuccess
     op -> putStrLn "ERROR: ¡Seleccione una opcion valida!"
   menu tareas
@@ -173,3 +174,8 @@ regresarInputIndex :: Int -> IO String
 regresarInputIndex totalTareas = do
   putStrLn "ERROR: ¡No existe tarea asociada a este número!"
   inputIndex totalTareas
+
+opcion5_Guardar :: [Tarea] -> IO ()
+opcion5_Guardar tareas = do
+  writeFile rutaGuardado (tareasAString tareas)
+  menu tareas
