@@ -1,10 +1,6 @@
 import System.Exit (exitSuccess)
-import System.IO
+import System.IO (hClose, hGetContents, openFile, IOMode(ReadMode))
 import Data.Text (Text, pack, splitOn, unpack)
-import System.Posix.Internals (puts)
-import Data.Text.Internal.Fusion.Common (lengthI)
-
--- data Fecha = Fecha {dia :: Int, mes :: Int, año :: Int}
 
 data Tarea = Tarea {descripcion :: String, estado :: String, fechaVencimiento :: String}
 
@@ -40,6 +36,9 @@ tareasAString :: [Tarea] -> String
 tareasAString [] = []
 tareasAString (x : xs) = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ tareasAString xs
 
+unaTareaAString :: Tarea -> String
+unaTareaAString x = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x
+
 menu :: [Tarea] -> IO ()
 menu tareas = do
   putStrLn "--------------------------------"
@@ -57,12 +56,12 @@ menu tareas = do
 
   case opcion of
     "1" -> opcion1_Agregar tareas
-    "2" -> putStrLn "2 SELECCIONADO"
+    "2" -> opcion2_Editar tareas
     "3" -> opcion3_submenuMostrar tareas
     "4" -> opcion4_Eliminar tareas
     "5" -> opcion5_Guardar tareas
     "0" -> exitSuccess
-    op -> putStrLn "ERROR: ¡Seleccione una opcion valida!"
+    op -> putStrLn "!! ERROR: ¡Seleccione una opcion valida!"
   menu tareas
 
 opcion1_Agregar :: [Tarea] -> IO ()
@@ -83,25 +82,39 @@ opcion1_Agregar tareas = do
   putStr "Fecha de vencimiento (aaaa/mm/dd): "
   fecha <- getLine
   let tarea = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
-  putStrLn ("Se registró exitosamente la tarea con descripción <" ++ descripcion ++ ">")
+  putStrLn ("** Se registró exitosamente la tarea con descripción: " ++ descripcion)
   menu (tarea : tareas)
 
-inputEstado :: IO String
-inputEstado = do
-  putStr "Opción: "
-  estado <- getLine
+opcion2_Editar :: [Tarea] -> IO ()
+opcion2_Editar tareas = do
+  putStrLn "--------------------------------"
+  putStrLn "** EDITAR TAREA               **"
+  putStrLn "--------------------------------"
+  putStrLn "** Lista de tareas existentes **"
+  putStrLn (take (length (mostrarTareas tareas 1) - 1) (mostrarTareas tareas 1))
+  putStrLn "--------------------------------"
+  input <- inputIndex (length tareas)
+  let index = read input - 1 :: Int
+  putStrLn ("Editando la tarea " ++ input ++ " con descripción: " ++ descripcion (tareas !! index))
+  putStrLn "--------------------------------"
+  putStr "Nueva descripción: "
+  descripcion <- getLine
+
+  putStrLn "Nuevo estado:"
+  putStrLn "** Introduzca un número"
+  putStrLn "1. Pendiente"
+  putStrLn "2. En proceso"
+  putStrLn "3. Terminada"
+  estado <- inputEstado
+
+  putStr "Nueva fecha de vencimiento (aaaa/mm/dd): "
+  fecha <- getLine
+  let tarea = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
+  let nuevasTareas = take index tareas ++ [tarea] ++ drop (index + 1) tareas
+  putStrLn "--------------------------------"
+  putStrLn ("** Se editó exitosamente la tarea " ++ input ++ " con la nueva descripción: " ++ descripcion)
+  menu nuevasTareas
   
-  case estado of
-    "1" -> pure "Pendiente"
-    "2" -> pure "En proceso"
-    "3" -> pure "Terminada"
-    op -> regresarInputEstado
-
-regresarInputEstado :: IO String
-regresarInputEstado = do
-  putStrLn "ERROR: ¡Opción inválida!"
-  inputEstado
-
 opcion3_submenuMostrar :: [Tarea] -> IO ()
 opcion3_submenuMostrar tareas = do
   putStrLn "--------------------------------"
@@ -124,7 +137,7 @@ opcion3_submenuMostrar tareas = do
     "3" -> putStrLn (take (length (header ++ mostrarTareasEnProceso tareas 1) - 1) (header ++ mostrarTareasEnProceso tareas 1))
     "4" -> putStrLn (take (length (header ++ mostrarTareasTerminadas tareas 1) - 1) (header ++ mostrarTareasTerminadas tareas 1))
     "0" -> menu tareas
-    op -> putStrLn "ERROR: ¡Seleccione una opción válida!"
+    op -> putStrLn "!! ERROR: ¡Seleccione una opción válida!"
   opcion3_submenuMostrar tareas
 
 mostrarTareas :: [Tarea] -> Int -> String
@@ -161,24 +174,41 @@ opcion4_Eliminar tareas = do
   let index = read input - 1 :: Int
   let nuevasTareas = take index tareas ++ drop (index + 1) tareas
   putStrLn "--------------------------------"
-  putStrLn ("Se eliminó la tarea " ++ input ++ " con descripción: " ++ descripcion (tareas !! index))
+  putStrLn ("** Se eliminó exitosamente la tarea " ++ input ++ " con descripción: " ++ descripcion (tareas !! index))
   menu nuevasTareas
+
+opcion5_Guardar :: [Tarea] -> IO ()
+opcion5_Guardar tareas = do
+  putStrLn "--------------------------------"
+  putStrLn "Guardando archivo..."
+  let header = "Descripción;Estado;FechaVencimiento\n"
+  writeFile rutaGuardado (header ++ tareasAString tareas)
+  putStrLn ("** ¡Archivo '" ++ rutaGuardado ++ "' guardado exitosamente!")
+  menu tareas
+
+inputEstado :: IO String
+inputEstado = do
+  putStr "-- Opción: "
+  estado <- getLine
+  
+  case estado of
+    "1" -> pure "Pendiente"
+    "2" -> pure "En proceso"
+    "3" -> pure "Terminada"
+    op -> regresarInputEstado
+
+regresarInputEstado :: IO String
+regresarInputEstado = do
+  putStrLn "!! ERROR: ¡Opción inválida!"
+  inputEstado
 
 inputIndex :: Int -> IO String
 inputIndex totalTareas = do
-  putStr "Introduzca el número de la tarea: "
+  putStr "-- Introduzca el número de la tarea: "
   input <- getLine
   if read input > 0 && read input <= totalTareas then pure input else regresarInputIndex totalTareas
 
 regresarInputIndex :: Int -> IO String
 regresarInputIndex totalTareas = do
-  putStrLn "ERROR: ¡No existe tarea asociada a este número!"
+  putStrLn "!! ERROR: ¡No existe tarea asociada a este número!"
   inputIndex totalTareas
-
-opcion5_Guardar :: [Tarea] -> IO ()
-opcion5_Guardar tareas = do
-  putStrLn "Guardando archivo..."
-  let header = "Descripción;Estado;FechaVencimiento\n"
-  writeFile rutaGuardado (header ++ tareasAString tareas)
-  putStrLn ("Archivo '" ++ rutaGuardado ++ "' guardado exitosamente!")
-  menu tareas

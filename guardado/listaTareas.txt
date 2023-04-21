@@ -1,6 +1,4 @@
 Descripci¢n;Estado;FechaVencimiento
-Terminar replit;En proceso;2023-05-12
-Practicas Modulo 5 CCNA 3;Pendiente;2023-05-01
-Project Backlog;Pendiente;2023-04-30
-Proyecto de Haskell;En proceso;2023-04-24
-HA Proxy;Terminada;2023-04-07
+Project Backlog;Pendiente;2023-05-20
+HA Proxy;Terminada;2023-05-16
+Proyecto Haskell Gestor de Tareas;En proceso;2023-04-05
