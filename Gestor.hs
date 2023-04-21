@@ -41,17 +41,17 @@ tareasAString (x : xs) = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimi
 
 menu :: [Tarea] -> IO ()
 menu tareas = do
-  putStrLn " "
-  putStrLn "--------------------------"
-  putStrLn "----  Menú Principal  ----"
+  putStrLn "--------------------------------"
+  putStrLn "** MENÚ PRINCIPAL             **"
+  putStrLn "--------------------------------"
   putStrLn "1. Agregar tarea"
   putStrLn "2. Editar tarea"
   putStrLn "3. Mostrar tareas"
   putStrLn "4. Eliminar tarea"
   putStrLn "5. Guardar"
   putStrLn "0. Salir"
-  putStrLn "--------------------------"
-  putStr "----  Opción: "
+  putStrLn "--------------------------------"
+  putStr "-- Opción: "
   opcion <- getLine
 
   case opcion of
@@ -65,7 +65,9 @@ menu tareas = do
 
 opcion1_Agregar :: [Tarea] -> IO ()
 opcion1_Agregar tareas = do
-  putStrLn "** AGREGAR TAREA **"
+  putStrLn "--------------------------------"
+  putStrLn "** AGREGAR TAREA              **"
+  putStrLn "--------------------------------"
   putStr "Descripción: "
   descripcion <- getLine
 
@@ -90,34 +92,34 @@ inputEstado = do
   case estado of
     "1" -> pure "Pendiente"
     "2" -> pure "En proceso"
-    "3" -> pure "Terminado"
+    "3" -> pure "Terminada"
     op -> regresarInputEstado
 
 regresarInputEstado = do
   putStrLn "ERROR: ¡Opción inválida!"
   inputEstado
 
-
 opcion3_submenuMostrar :: [Tarea] -> IO ()
 opcion3_submenuMostrar tareas = do
-  putStrLn " "
-  putStrLn "--------------------------"
-  putStrLn "---  Tareas a mostrar  ---"
+  putStrLn "--------------------------------"
+  putStrLn "** TAREAS PARA MOSTRAR        **"
+  putStrLn "--------------------------------"
   putStrLn "1. Todas"
   putStrLn "2. Tareas pendientes"
   putStrLn "3. Tareas en proceso"
   putStrLn "4. Tareas terminadas"
   putStrLn "0. Volver al menú principal"
-  putStrLn "--------------------------"
-  putStr "---  Opción: "
+  putStrLn "--------------------------------"
+  putStr "-- Opción: "
   opcion <- getLine
+  putStrLn "--------------------------------"
 
   let header = "Num.;Descripción;Estado;FechaVencimiento\n"
   case opcion of
-    "1" -> putStrLn (header ++ mostrarTareas tareas 1)
-    "2" -> putStrLn (header ++ mostrarTareasPendientes tareas 1)
-    "3" -> putStrLn (header ++ mostrarTareasEnProceso tareas 1)
-    "4" -> putStrLn (header ++ mostrarTareasTerminadas tareas 1)
+    "1" -> putStrLn (take (length (header ++ mostrarTareas tareas 1) - 2) (header ++ mostrarTareas tareas 1))
+    "2" -> putStrLn (take (length (header ++ mostrarTareasPendientes tareas 1) - 2) (header ++ mostrarTareasPendientes tareas 1))
+    "3" -> putStrLn (take (length (header ++ mostrarTareasEnProceso tareas 1) - 2) (header ++ mostrarTareasEnProceso tareas 1))
+    "4" -> putStrLn (take (length (header ++ mostrarTareasTerminadas tareas 1) - 2) (header ++ mostrarTareasTerminadas tareas 1))
     "0" -> menu tareas
     op -> putStrLn "ERROR: ¡Seleccione una opción válida!"
   opcion3_submenuMostrar tareas
@@ -141,14 +143,17 @@ mostrarTareasEnProceso (x : xs) contador
 mostrarTareasTerminadas :: [Tarea] -> Int -> String
 mostrarTareasTerminadas [] _ = []
 mostrarTareasTerminadas (x : xs) contador
-  | estado x == show contador ++ ";" ++ "Terminada" = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasTerminadas xs (contador + 1)
+  | estado x == "Terminada" = show contador ++ ";" ++ descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasTerminadas xs (contador + 1)
   | otherwise = mostrarTareasTerminadas xs contador
 
 opcion4_Eliminar :: [Tarea] -> IO ()
 opcion4_Eliminar tareas = do
-  putStrLn "**       ELIMINAR TAREA       **"
+  putStrLn "--------------------------------"
+  putStrLn "** ELIMINAR TAREA             **"
+  putStrLn "--------------------------------"
   putStrLn "** Lista de tareas existentes **"
-  putStrLn (mostrarTareas tareas 1)
+  putStrLn (take (length (mostrarTareas tareas 1) - 2) (mostrarTareas tareas 1))
+  putStrLn "--------------------------------"
   putStr "Introduzca el número de la tarea: "
   index <- getLine
   putStrLn ""
