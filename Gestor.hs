@@ -177,5 +177,8 @@ regresarInputIndex totalTareas = do
 
 opcion5_Guardar :: [Tarea] -> IO ()
 opcion5_Guardar tareas = do
-  writeFile rutaGuardado (tareasAString tareas)
+  putStrLn "Guardando archivo..."
+  let header = "Descripción;Estado;FechaVencimiento\n"
+  writeFile rutaGuardado (header ++ tareasAString tareas)
+  putStrLn ("Archivo '" ++ rutaGuardado ++ "' guardado exitosamente!")
   menu tareas
