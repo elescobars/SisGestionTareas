@@ -1,6 +1,6 @@
 import System.Exit (exitSuccess)
 import System.IO
-import Data.Text (Text, pack, splitOn, unpack, append)
+import Data.Text (Text, pack, splitOn, unpack)
 import System.Posix.Internals (puts)
 
 -- data Fecha = Fecha {dia :: Int, mes :: Int, año :: Int}
@@ -10,6 +10,7 @@ data Tarea = Tarea {descripcion :: String, estado :: String, fechaVencimiento ::
 rutaGuardado :: FilePath
 rutaGuardado = "guardado/listaTareas.txt"
 
+main :: IO ()
 main = do
   cargar rutaGuardado
 
@@ -18,7 +19,6 @@ cargar ruta = do
   handler <- openFile ruta ReadMode
   contenido <- hGetContents handler
   let tareas = leerListaTareas (lines contenido)
-  -- print (tareasAString tareas)
   menu tareas
   hClose handler
 
@@ -29,6 +29,7 @@ leerListaTareas lineas = do
   let tareasPorConvertir = map separarEnLista lineasSinCabecera
   map transformarLinea tareasPorConvertir
 
+separarEnLista :: String -> [Text]
 separarEnLista linea = splitOn (pack ";") (pack linea)
 
 transformarLinea :: [Text] -> Tarea
@@ -57,9 +58,9 @@ menu tareas = do
     "1" -> opcion1_Agregar tareas
     "2" -> putStrLn "2 SELECCIONADO"
     "3" -> opcion3_submenuMostrar tareas
-    "4" -> putStrLn "4 SELECCIONADO"
+    "4" -> opcion4_Eliminar tareas
     "0" -> exitSuccess
-    op -> putStrLn "Seleccione una opcion valida!"
+    op -> putStrLn "ERROR: ¡Seleccione una opcion valida!"
   menu tareas
 
 opcion1_Agregar :: [Tarea] -> IO ()
@@ -73,7 +74,7 @@ opcion1_Agregar tareas = do
   putStrLn "1. Pendiente"
   putStrLn "2. En proceso"
   putStrLn "3. Terminada"
-  estado <- getEstado
+  estado <- inputEstado
 
   putStr "Fecha de vencimiento (aaaa/mm/dd): "
   fecha <- getLine
@@ -81,8 +82,8 @@ opcion1_Agregar tareas = do
   putStr ("Se registró exitosamente la tarea con descripción <" ++ descripcion ++ ">")
   menu (tarea : tareas)
 
-getEstado :: IO String
-getEstado = do
+inputEstado :: IO String
+inputEstado = do
   putStr "Opción: "
   estado <- getLine
   
@@ -90,14 +91,15 @@ getEstado = do
     "1" -> pure "Pendiente"
     "2" -> pure "En proceso"
     "3" -> pure "Terminado"
-    op -> regresarGetEstado
+    op -> regresarInputEstado
 
-regresarGetEstado = do
-  putStrLn "Opción inválida!"
-  getEstado
+regresarInputEstado = do
+  putStrLn "ERROR: ¡Opción inválida!"
+  inputEstado
 
+
+opcion3_submenuMostrar :: [Tarea] -> IO ()
 opcion3_submenuMostrar tareas = do
-  let header = "Descripción;Estado;FechaVencimiento\n"
   putStrLn " "
   putStrLn "--------------------------"
   putStrLn "---  Tareas a mostrar  ---"
@@ -110,29 +112,43 @@ opcion3_submenuMostrar tareas = do
   putStr "---  Opción: "
   opcion <- getLine
 
+  let header = "Num.;Descripción;Estado;FechaVencimiento\n"
   case opcion of
-    "1" -> putStrLn (header ++ tareasAString tareas)
-    "2" -> putStrLn (header ++ mostrarTareasPendientes tareas)
-    "3" -> putStrLn (header ++ mostrarTareasEnProceso tareas)
-    "4" -> putStrLn (header ++ mostrarTareasTerminadas tareas)
+    "1" -> putStrLn (header ++ mostrarTareas tareas 1)
+    "2" -> putStrLn (header ++ mostrarTareasPendientes tareas 1)
+    "3" -> putStrLn (header ++ mostrarTareasEnProceso tareas 1)
+    "4" -> putStrLn (header ++ mostrarTareasTerminadas tareas 1)
     "0" -> menu tareas
-    op -> putStrLn "Seleccione una opción válida!"
+    op -> putStrLn "ERROR: ¡Seleccione una opción válida!"
   opcion3_submenuMostrar tareas
 
-mostrarTareasPendientes :: [Tarea] -> String
-mostrarTareasPendientes [] = []
-mostrarTareasPendientes (x : xs)
-  | estado x == "Pendiente" = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasPendientes xs
-  | otherwise = mostrarTareasPendientes xs
+mostrarTareas :: [Tarea] -> Int -> String
+mostrarTareas [] _ = []
+mostrarTareas (x : xs) contador = show contador ++ ";" ++ descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareas xs (contador + 1)
 
-mostrarTareasEnProceso :: [Tarea] -> String
-mostrarTareasEnProceso [] = []
-mostrarTareasEnProceso (x : xs)
-  | estado x == "En proceso" = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasEnProceso xs
-  | otherwise = mostrarTareasEnProceso xs
+mostrarTareasPendientes :: [Tarea] -> Int -> String
+mostrarTareasPendientes [] _ = []
+mostrarTareasPendientes (x : xs) contador
+  | estado x == "Pendiente" = show contador ++ ";" ++ descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasPendientes xs (contador + 1)
+  | otherwise = mostrarTareasPendientes xs contador
 
-mostrarTareasTerminadas :: [Tarea] -> String
-mostrarTareasTerminadas [] = []
-mostrarTareasTerminadas (x : xs)
-  | estado x == "Terminada" = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasTerminadas xs
-  | otherwise = mostrarTareasTerminadas xs
+mostrarTareasEnProceso :: [Tarea] -> Int -> String
+mostrarTareasEnProceso [] _ = []
+mostrarTareasEnProceso (x : xs) contador
+  | estado x == "En proceso" = show contador ++ ";" ++ descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasEnProceso xs (contador + 1)
+  | otherwise = mostrarTareasEnProceso xs contador
+
+mostrarTareasTerminadas :: [Tarea] -> Int -> String
+mostrarTareasTerminadas [] _ = []
+mostrarTareasTerminadas (x : xs) contador
+  | estado x == show contador ++ ";" ++ "Terminada" = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimiento x ++ "\n" ++ mostrarTareasTerminadas xs (contador + 1)
+  | otherwise = mostrarTareasTerminadas xs contador
+
+opcion4_Eliminar :: [Tarea] -> IO ()
+opcion4_Eliminar tareas = do
+  putStrLn "**       ELIMINAR TAREA       **"
+  putStrLn "** Lista de tareas existentes **"
+  putStrLn (mostrarTareas tareas 1)
+  putStr "Introduzca el número de la tarea: "
+  index <- getLine
+  putStrLn ""
