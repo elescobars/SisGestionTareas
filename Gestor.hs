@@ -42,7 +42,7 @@ tareasAString (x : xs) = descripcion x ++ ";" ++ estado x ++ ";" ++ fechaVencimi
 menu :: [Tarea] -> IO ()
 menu tareas = do
   putStrLn "--------------------------------"
-  putStrLn "** MENÚ PRINCIPAL             **"
+  putStrLn "** MENU PRINCIPAL             **"
   putStrLn "--------------------------------"
   putStrLn "1. Agregar tarea"
   putStrLn "2. Editar tarea"
@@ -81,7 +81,7 @@ opcion1_Agregar tareas = do
   putStr "Fecha de vencimiento (aaaa/mm/dd): "
   fecha <- getLine
   let tarea = Tarea {descripcion = descripcion, estado = estado, fechaVencimiento = fecha}
-  putStr ("Se registró exitosamente la tarea con descripción <" ++ descripcion ++ ">")
+  putStrLn ("Se registró exitosamente la tarea con descripción <" ++ descripcion ++ ">")
   menu (tarea : tareas)
 
 inputEstado :: IO String
@@ -116,10 +116,10 @@ opcion3_submenuMostrar tareas = do
 
   let header = "Num.;Descripción;Estado;FechaVencimiento\n"
   case opcion of
-    "1" -> putStrLn (take (length (header ++ mostrarTareas tareas 1) - 2) (header ++ mostrarTareas tareas 1))
-    "2" -> putStrLn (take (length (header ++ mostrarTareasPendientes tareas 1) - 2) (header ++ mostrarTareasPendientes tareas 1))
-    "3" -> putStrLn (take (length (header ++ mostrarTareasEnProceso tareas 1) - 2) (header ++ mostrarTareasEnProceso tareas 1))
-    "4" -> putStrLn (take (length (header ++ mostrarTareasTerminadas tareas 1) - 2) (header ++ mostrarTareasTerminadas tareas 1))
+    "1" -> putStrLn (take (length (header ++ mostrarTareas tareas 1) - 1) (header ++ mostrarTareas tareas 1))
+    "2" -> putStrLn (take (length (header ++ mostrarTareasPendientes tareas 1) - 1) (header ++ mostrarTareasPendientes tareas 1))
+    "3" -> putStrLn (take (length (header ++ mostrarTareasEnProceso tareas 1) - 1) (header ++ mostrarTareasEnProceso tareas 1))
+    "4" -> putStrLn (take (length (header ++ mostrarTareasTerminadas tareas 1) - 1) (header ++ mostrarTareasTerminadas tareas 1))
     "0" -> menu tareas
     op -> putStrLn "ERROR: ¡Seleccione una opción válida!"
   opcion3_submenuMostrar tareas
@@ -156,4 +156,4 @@ opcion4_Eliminar tareas = do
   putStrLn "--------------------------------"
   putStr "Introduzca el número de la tarea: "
   index <- getLine
-  putStrLn ""
+  putStrLn ("Se elimino la tarea " ++ index)
